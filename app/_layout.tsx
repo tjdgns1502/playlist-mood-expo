@@ -1,26 +1,39 @@
-import { Stack } from "expo-router";
-import { useFonts } from "expo-font";
-import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
-import { StatusBar } from "expo-status-bar";
-import { AuthProvider } from "../src/context/AuthContext";
-import { AnalysisProvider } from "../src/context/AnalysisContext";
-import { TermsModal } from "../src/components/TermsModal";
-import { colors } from "../src/theme";
+import { Stack } from 'expo-router';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
-SplashScreen.preventAutoHideAsync();
+import { TermsModal } from '../src/components/TermsModal';
+import { AnalysisProvider } from '../src/context/AnalysisContext';
+import { AuthProvider } from '../src/context/AuthContext';
+import { colors, fonts } from '../src/theme';
+
+if (Platform.OS !== 'web') {
+  void SplashScreen.preventAutoHideAsync();
+}
 
 export default function RootLayout() {
   const [loaded, fontError] = useFonts({
-    Pretendard: require("../assets/fonts/Pretendard-Regular.otf"),
-    "Pretendard-Bold": require("../assets/fonts/Pretendard-Bold.otf"),
+    Pretendard: require('../assets/fonts/Pretendard-Regular.otf'),
+    'Pretendard-Bold': require('../assets/fonts/Pretendard-Bold.otf'),
   });
 
   useEffect(() => {
-    if (loaded || fontError) {
+    if (Platform.OS === 'web') {
+      document.documentElement.style.backgroundColor = colors.bg;
+      document.body.style.backgroundColor = colors.bg;
+      document.body.style.margin = '0';
+      document.title = 'PlaylistMood';
+    }
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' && (loaded || fontError)) {
       void SplashScreen.hideAsync();
     }
-  }, [loaded, fontError]);
+  }, [fontError, loaded]);
 
   if (!loaded && !fontError) {
     return null;
@@ -34,16 +47,21 @@ export default function RootLayout() {
           screenOptions={{
             headerStyle: { backgroundColor: colors.bg },
             headerTintColor: colors.text,
-            headerTitleStyle: { fontFamily: "Pretendard-Bold" },
+            headerShadowVisible: false,
+            headerTitleStyle: {
+              fontFamily: fonts.bold,
+              fontSize: 18,
+            },
             contentStyle: { backgroundColor: colors.bg },
+            animation: 'fade',
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="pricing"
             options={{
-              presentation: "modal",
-              title: "요금제",
+              title: '요금제 및 결제',
+              presentation: Platform.OS === 'web' ? 'card' : 'modal',
             }}
           />
         </Stack>

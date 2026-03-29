@@ -1,91 +1,180 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from 'react';
 import {
   Modal,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { WebView } from "react-native-webview";
-import { colors, fonts, spacing } from "../src/theme";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const TIERS = [
+import { WebLayout } from '../src/components/WebLayout';
+import { colors, fonts, radius, shadow, spacing } from '../src/theme';
+
+type Provider = 'toss' | 'stripe';
+type TierKey = 'Free' | 'Pro' | 'Premium';
+
+const TIERS: Array<{
+  key: TierKey;
+  title: string;
+  price: string;
+  monthlyLabel: string;
+  description: string;
+  features: string[];
+  accent: string;
+  accentText: string;
+  recommended?: boolean;
+}> = [
   {
-    name: "Free",
-    title: "무료",
-    price: "₩0",
-    bullets: ["월 3회 분석", "기본 스코어 카드", "캐시 저장"],
+    key: 'Free',
+    title: '무료',
+    price: '₩0',
+    monthlyLabel: '기본 체험',
+    description: '발표 전 기능 확인용으로 적당한 무료 플랜입니다.',
+    features: ['월 3회 분석', '기본 스코어 카드', '기기 캐시 저장'],
+    accent: colors.card,
+    accentText: colors.text,
   },
   {
-    name: "Pro",
-    title: "프로",
-    price: "₩4,900/월",
-    bullets: ["무제한 분석", "마크다운 리포트 확장", "프로젝터 모드 UI"],
-    highlight: true,
+    key: 'Pro',
+    title: '프로',
+    price: '₩4,900',
+    monthlyLabel: '월간',
+    description: '수업 발표 데모에 가장 적합한 구성입니다.',
+    features: ['무제한 분석', '확장 마크다운 리포트', '프로젝터 최적화 UI'],
+    accent: colors.cyanSoft,
+    accentText: colors.cyan,
+    recommended: true,
   },
   {
-    name: "Premium",
-    title: "프리미엄",
-    price: "₩9,900/월",
-    bullets: ["프로 전체", "우선 응답(데모)", "팀 공유 링크(더미)"],
+    key: 'Premium',
+    title: '프리미엄',
+    price: '₩9,900',
+    monthlyLabel: '월간',
+    description: '추가 공유 기능을 붙일 때 확장하기 좋은 데모 플랜입니다.',
+    features: ['Pro 전체 포함', '우선 응답(데모)', '공유 링크/팀 기능 예정'],
+    accent: colors.violetSoft,
+    accentText: colors.violet,
   },
 ];
 
+const PROVIDERS: Array<{ key: Provider; title: string; subtitle: string }> = [
+  { key: 'toss', title: 'Toss Payments', subtitle: '국내 결제 플로우 데모' },
+  { key: 'stripe', title: 'Stripe', subtitle: '글로벌 결제 플로우 데모' },
+];
+
 export default function PricingScreen() {
-  const [payOpen, setPayOpen] = useState(false);
-  const [provider, setProvider] = useState<"toss" | "stripe">("toss");
+  const [provider, setProvider] = useState<Provider>('toss');
+  const [selectedTier, setSelectedTier] = useState<TierKey>('Pro');
+  const [open, setOpen] = useState(false);
+  const selected = useMemo(() => TIERS.find((tier) => tier.key === selectedTier) ?? TIERS[0], [selectedTier]);
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom", "left", "right"]}>
-      <View style={styles.pad}>
-        <Text style={styles.lead}>
-          결제는 데모용 스캐폴드입니다. 실제 과금되지 않습니다.
-        </Text>
-        {TIERS.map((t) => (
-          <View
-            key={t.name}
-            style={[styles.tier, t.highlight && styles.tierHi]}
-          >
-            <Text style={styles.tierTitle}>{t.title}</Text>
-            <Text style={styles.price}>{t.price}</Text>
-            {t.bullets.map((b) => (
-              <Text key={b} style={styles.bullet}>
-                · {b}
-              </Text>
-            ))}
-            <Pressable
-              style={styles.payBtn}
-              onPress={() => {
-                setProvider(t.name === "Premium" ? "stripe" : "toss");
-                setPayOpen(true);
-              }}
-            >
-              <Text style={styles.payText}>결제하기 (더미)</Text>
-            </Pressable>
-          </View>
-        ))}
-      </View>
-
-      <Modal visible={payOpen} animationType="slide">
-        <SafeAreaView style={styles.modalSafe}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
-              {provider === "toss" ? "Toss Payments (문서)" : "Stripe (문서)"}
+    <SafeAreaView style={styles.safe} edges={['left', 'right', 'bottom']}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <WebLayout style={styles.content}>
+          <View style={styles.heroCard}>
+            <Text style={styles.heroEyebrow}>PAYMENT DEMO</Text>
+            <Text style={styles.heroTitle}>웹과 모바일에서 같은 결제 데모 플로우를 시연할 수 있습니다</Text>
+            <Text style={styles.heroDescription}>
+              실제 과금은 일어나지 않는 테스트용 흐름입니다. 발표에서는 플랜 선택 → 결제 모달 → 성공 설명까지 보여주면 충분합니다.
             </Text>
-            <Pressable onPress={() => setPayOpen(false)}>
-              <Text style={styles.close}>닫기</Text>
+          </View>
+
+          <View style={styles.providerCard}>
+            <Text style={styles.sectionTitle}>결제 제공자 선택</Text>
+            <View style={styles.providerRow}>
+              {PROVIDERS.map((item) => {
+                const active = provider === item.key;
+                return (
+                  <Pressable
+                    key={item.key}
+                    style={[styles.providerOption, active && styles.providerOptionActive]}
+                    onPress={() => setProvider(item.key)}
+                  >
+                    <Text style={[styles.providerTitle, active && styles.providerTitleActive]}>{item.title}</Text>
+                    <Text style={styles.providerSubtitle}>{item.subtitle}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.tierList}>
+            {TIERS.map((tier) => {
+              const active = tier.key === selectedTier;
+              return (
+                <Pressable
+                  key={tier.key}
+                  style={[styles.tierCard, active && styles.tierCardActive]}
+                  onPress={() => setSelectedTier(tier.key)}
+                >
+                  <View style={styles.tierHeader}>
+                    <View style={[styles.tierBadge, { backgroundColor: tier.accent }] }>
+                      <Text style={[styles.tierBadgeText, { color: tier.accentText }]}>{tier.title}</Text>
+                    </View>
+                    {tier.recommended ? (
+                      <View style={styles.recommendedBadge}>
+                        <Text style={styles.recommendedBadgeText}>추천</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text style={styles.tierPrice}>{tier.price}</Text>
+                  <Text style={styles.tierMonthly}>{tier.monthlyLabel}</Text>
+                  <Text style={styles.tierDescription}>{tier.description}</Text>
+                  {tier.features.map((feature) => (
+                    <Text key={feature} style={styles.featureItem}>• {feature}</Text>
+                  ))}
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <View style={styles.checkoutCard}>
+            <Text style={styles.sectionTitle}>선택한 결제 요약</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>플랜</Text>
+              <Text style={styles.summaryValue}>{selected.title}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>제공자</Text>
+              <Text style={styles.summaryValue}>{provider === 'toss' ? 'Toss Payments' : 'Stripe'}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>결제 상태</Text>
+              <Text style={styles.summaryValue}>테스트 모드</Text>
+            </View>
+            <Pressable style={styles.checkoutButton} onPress={() => setOpen(true)}>
+              <Text style={styles.checkoutButtonText}>결제 화면 열기</Text>
             </Pressable>
           </View>
-          <WebView
-            source={{
-              uri:
-                provider === "toss"
-                  ? "https://docs.tosspayments.com/guides/v2/get-started"
-                  : "https://stripe.com/docs/testing",
-            }}
-          />
-        </SafeAreaView>
+        </WebLayout>
+      </ScrollView>
+
+      <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{provider === 'toss' ? 'Toss Payments 테스트 결제' : 'Stripe 테스트 결제'}</Text>
+            <Text style={styles.modalDescription}>이 창은 실제 SDK 연결 전 단계의 더미 결제 흐름입니다.</Text>
+
+            <View style={styles.modalSteps}>
+              <View style={styles.modalStep}><Text style={styles.modalStepIndex}>1</Text><Text style={styles.modalStepText}>플랜 확인: {selected.title}</Text></View>
+              <View style={styles.modalStep}><Text style={styles.modalStepIndex}>2</Text><Text style={styles.modalStepText}>결제 금액: {selected.price}</Text></View>
+              <View style={styles.modalStep}><Text style={styles.modalStepIndex}>3</Text><Text style={styles.modalStepText}>테스트 승인 후 성공 화면 연출 가능</Text></View>
+            </View>
+
+            <View style={styles.modalActionRow}>
+              <Pressable style={styles.modalSecondaryButton} onPress={() => setOpen(false)}>
+                <Text style={styles.modalSecondaryButtonText}>취소</Text>
+              </Pressable>
+              <Pressable style={styles.modalPrimaryButton} onPress={() => setOpen(false)}>
+                <Text style={styles.modalPrimaryButtonText}>테스트 승인</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -93,71 +182,269 @@ export default function PricingScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  pad: { padding: spacing.s24, gap: spacing.s16, paddingBottom: spacing.s32 },
-  lead: {
-    fontFamily: fonts.regular,
-    fontSize: 14,
-    color: colors.muted,
-    marginBottom: spacing.s8,
+  scroll: {
+    paddingTop: spacing.s24,
+    paddingBottom: spacing.s40,
   },
-  tier: {
-    borderRadius: 16,
+  content: {
+    gap: spacing.s20,
+  },
+  heroCard: {
+    borderRadius: radius.xl,
     padding: spacing.s24,
+    backgroundColor: colors.panelStrong,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: "rgba(255,255,255,0.04)",
-    gap: spacing.s8,
+    gap: spacing.s12,
   },
-  tierHi: {
-    borderColor: "rgba(34,211,238,0.45)",
-    backgroundColor: "rgba(34,211,238,0.08)",
-  },
-  tierTitle: {
+  heroEyebrow: {
     fontFamily: fonts.bold,
-    fontSize: 20,
-    color: colors.text,
-  },
-  price: {
-    fontFamily: fonts.bold,
-    fontSize: 18,
     color: colors.cyan,
-    marginBottom: spacing.s8,
+    fontSize: 11,
+    letterSpacing: 1.6,
   },
-  bullet: {
-    fontFamily: fonts.regular,
-    fontSize: 15,
-    color: colors.muted,
-  },
-  payBtn: {
-    marginTop: spacing.s16,
-    paddingVertical: spacing.s12,
-    borderRadius: 12,
-    backgroundColor: colors.violet,
-    alignItems: "center",
-  },
-  payText: {
+  heroTitle: {
     fontFamily: fonts.bold,
-    fontSize: 15,
-    color: "#0b1020",
+    color: colors.text,
+    fontSize: 28,
+    lineHeight: 36,
   },
-  modalSafe: { flex: 1, backgroundColor: colors.bg },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.s16,
-    paddingVertical: spacing.s12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  heroDescription: {
+    fontFamily: fonts.regular,
+    color: colors.subtext,
+    fontSize: 15,
+    lineHeight: 24,
+  },
+  providerCard: {
+    borderRadius: radius.lg,
+    padding: spacing.s20,
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.s16,
+  },
+  sectionTitle: {
+    fontFamily: fonts.bold,
+    color: colors.text,
+    fontSize: 19,
+  },
+  providerRow: {
+    gap: spacing.s12,
+  },
+  providerOption: {
+    borderRadius: radius.md,
+    padding: spacing.s16,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.s4,
+  },
+  providerOptionActive: {
+    borderColor: colors.cyan,
+    backgroundColor: colors.cyanSoft,
+  },
+  providerTitle: {
+    fontFamily: fonts.bold,
+    color: colors.text,
+    fontSize: 16,
+  },
+  providerTitleActive: {
+    color: colors.cyan,
+  },
+  providerSubtitle: {
+    fontFamily: fonts.regular,
+    color: colors.muted,
+    fontSize: 13,
+  },
+  tierList: {
+    gap: spacing.s16,
+  },
+  tierCard: {
+    borderRadius: radius.xl,
+    padding: spacing.s20,
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.s12,
+  },
+  tierCardActive: {
+    borderColor: colors.cyan,
+    ...shadow.glow,
+  },
+  tierHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.s12,
+  },
+  tierBadge: {
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.s12,
+    paddingVertical: spacing.s8,
+  },
+  tierBadgeText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+  },
+  recommendedBadge: {
+    borderRadius: radius.pill,
+    backgroundColor: colors.cyan,
+    paddingHorizontal: spacing.s12,
+    paddingVertical: spacing.s8,
+  },
+  recommendedBadgeText: {
+    fontFamily: fonts.bold,
+    color: colors.black,
+    fontSize: 12,
+  },
+  tierPrice: {
+    fontFamily: fonts.bold,
+    color: colors.text,
+    fontSize: 30,
+  },
+  tierMonthly: {
+    fontFamily: fonts.regular,
+    color: colors.muted,
+    fontSize: 14,
+  },
+  tierDescription: {
+    fontFamily: fonts.regular,
+    color: colors.subtext,
+    fontSize: 15,
+    lineHeight: 24,
+  },
+  featureItem: {
+    fontFamily: fonts.regular,
+    color: colors.subtext,
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  checkoutCard: {
+    borderRadius: radius.xl,
+    padding: spacing.s20,
+    backgroundColor: colors.panelStrong,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.s12,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.s12,
+  },
+  summaryLabel: {
+    fontFamily: fonts.regular,
+    color: colors.muted,
+    fontSize: 14,
+  },
+  summaryValue: {
+    fontFamily: fonts.bold,
+    color: colors.text,
+    fontSize: 15,
+  },
+  checkoutButton: {
+    marginTop: spacing.s8,
+    borderRadius: radius.md,
+    paddingVertical: spacing.s16,
+    alignItems: 'center',
+    backgroundColor: colors.cyan,
+  },
+  checkoutButtonText: {
+    fontFamily: fonts.bold,
+    color: colors.black,
+    fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.s24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: Platform.OS === 'web' ? 480 : 420,
+    borderRadius: radius.xl,
+    padding: spacing.s24,
+    backgroundColor: colors.panelStrong,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    gap: spacing.s16,
   },
   modalTitle: {
     fontFamily: fonts.bold,
-    fontSize: 16,
     color: colors.text,
+    fontSize: 24,
+    lineHeight: 32,
   },
-  close: {
-    fontFamily: fonts.bold,
-    fontSize: 16,
+  modalDescription: {
+    fontFamily: fonts.regular,
+    color: colors.subtext,
+    fontSize: 15,
+    lineHeight: 24,
+  },
+  modalSteps: {
+    gap: spacing.s12,
+  },
+  modalStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.s12,
+    borderRadius: radius.md,
+    padding: spacing.s12,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalStepIndex: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    overflow: 'hidden',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    lineHeight: 28,
+    backgroundColor: colors.cyanSoft,
     color: colors.cyan,
+    fontFamily: fonts.bold,
+    fontSize: 13,
+  },
+  modalStepText: {
+    flex: 1,
+    color: colors.subtext,
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  modalActionRow: {
+    flexDirection: 'row',
+    gap: spacing.s12,
+  },
+  modalSecondaryButton: {
+    flex: 1,
+    borderRadius: radius.md,
+    paddingVertical: spacing.s16,
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  modalSecondaryButtonText: {
+    fontFamily: fonts.bold,
+    color: colors.text,
+    fontSize: 15,
+  },
+  modalPrimaryButton: {
+    flex: 1,
+    borderRadius: radius.md,
+    paddingVertical: spacing.s16,
+    alignItems: 'center',
+    backgroundColor: colors.cyan,
+  },
+  modalPrimaryButtonText: {
+    fontFamily: fonts.bold,
+    color: colors.black,
+    fontSize: 15,
   },
 });

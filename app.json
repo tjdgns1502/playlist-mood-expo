@@ -7,14 +7,13 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
+    "platforms": ["ios", "android", "web"],
     "splash": {
       "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#070a12"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.playlistmood.app"
@@ -26,12 +25,14 @@
       },
       "package": "com.playlistmood.app"
     },
-    "plugins": [
-      "expo-router",
-      "expo-font",
-      "expo-asset",
-      "expo-web-browser"
-    ],
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/icon.png",
+      "name": "PlaylistMood",
+      "shortName": "PlaylistMood",
+      "backgroundColor": "#050816"
+    },
+    "plugins": ["expo-router", "expo-font", "expo-asset", "expo-web-browser"],
     "experiments": {
       "typedRoutes": true
     }

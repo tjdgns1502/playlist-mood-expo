@@ -1,7 +1,8 @@
-import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
-import Markdown from "react-native-markdown-display";
-import { colors, fonts } from "../theme";
+import React from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import Markdown from 'react-native-markdown-display';
+
+import { colors, fonts, radius, spacing } from '../theme';
 
 type Props = {
   markdown: string;
@@ -10,7 +11,7 @@ type Props = {
 export function MarkdownReport({ markdown }: Props) {
   return (
     <View style={styles.box}>
-      <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false}>
+      <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <Markdown style={markdownStyles}>{markdown}</Markdown>
       </ScrollView>
     </View>
@@ -19,12 +20,15 @@ export function MarkdownReport({ markdown }: Props) {
 
 const styles = StyleSheet.create({
   box: {
-    maxHeight: 420,
-    borderRadius: 16,
-    padding: 16,
-    backgroundColor: "rgba(255,255,255,0.04)",
+    maxHeight: 520,
+    borderRadius: radius.xl,
+    padding: spacing.s20,
+    backgroundColor: colors.panel,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  content: {
+    paddingBottom: spacing.s8,
   },
 });
 
@@ -33,78 +37,86 @@ const markdownStyles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.regular,
     fontSize: 15,
-    lineHeight: 24,
+    lineHeight: 25,
   },
   heading1: {
     color: colors.text,
     fontFamily: fonts.bold,
-    fontSize: 24,
-    marginTop: 8,
-    marginBottom: 12,
+    fontSize: 26,
+    marginTop: spacing.s8,
+    marginBottom: spacing.s12,
   },
   heading2: {
     color: colors.text,
     fontFamily: fonts.bold,
-    fontSize: 20,
-    marginTop: 8,
-    marginBottom: 10,
+    fontSize: 22,
+    marginTop: spacing.s16,
+    marginBottom: spacing.s12,
   },
   heading3: {
     color: colors.text,
     fontFamily: fonts.bold,
-    fontSize: 17,
-    marginTop: 6,
-    marginBottom: 8,
+    fontSize: 18,
+    marginTop: spacing.s12,
+    marginBottom: spacing.s8,
   },
   paragraph: {
-    marginBottom: 10,
-    color: colors.muted,
+    marginBottom: spacing.s12,
+    color: colors.subtext,
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    lineHeight: 25,
+  },
+  bullet_list: {
+    marginBottom: spacing.s12,
+  },
+  ordered_list: {
+    marginBottom: spacing.s12,
+  },
+  list_item: {
+    color: colors.subtext,
     fontFamily: fonts.regular,
     fontSize: 15,
     lineHeight: 24,
-  },
-  bullet_list: {
-    marginBottom: 8,
-  },
-  ordered_list: {
-    marginBottom: 8,
-  },
-  list_item: {
-    color: colors.muted,
-    fontFamily: fonts.regular,
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 4,
   },
   strong: {
     color: colors.text,
     fontFamily: fonts.bold,
   },
+  em: {
+    color: colors.cyan,
+  },
   link: {
     color: colors.cyan,
-    textDecorationLine: "underline",
+    textDecorationLine: 'underline',
   },
   blockquote: {
-    borderLeftColor: colors.cyan,
+    borderLeftColor: colors.violet,
     borderLeftWidth: 3,
-    paddingLeft: 12,
-    marginVertical: 8,
-    color: colors.muted,
+    paddingLeft: spacing.s16,
+    paddingVertical: spacing.s8,
+    marginVertical: spacing.s8,
+    backgroundColor: colors.violetSoft,
   },
   code_inline: {
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: colors.cardStrong,
     color: colors.cyan,
     fontFamily: fonts.regular,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: spacing.s8,
+    paddingVertical: spacing.s4,
+    borderRadius: radius.sm,
   },
   fence: {
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: 'rgba(2,6,23,0.72)',
     color: colors.text,
     fontFamily: fonts.regular,
-    padding: 12,
-    borderRadius: 10,
-    marginVertical: 8,
+    padding: spacing.s16,
+    borderRadius: radius.md,
+    marginVertical: spacing.s12,
+  },
+  hr: {
+    backgroundColor: colors.borderStrong,
+    height: 1,
+    marginVertical: spacing.s16,
   },
 });
