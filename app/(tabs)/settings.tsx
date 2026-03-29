@@ -1,17 +1,12 @@
 import { router } from "expo-router";
 import React from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../src/context/AuthContext";
 import { colors, fonts, spacing } from "../../src/theme";
 
 export default function SettingsScreen() {
-  const {
-    user,
-    signInGoogle,
-    signOut,
-    googleConfigured,
-  } = useAuth();
+  const { user, signInGoogle, signOut, usingMockAuth } = useAuth();
 
   return (
     <SafeAreaView style={styles.safe} edges={["bottom", "left", "right"]}>
@@ -29,26 +24,21 @@ export default function SettingsScreen() {
             </>
           ) : (
             <>
-              <Text style={styles.label}>Google OAuth</Text>
+              <Text style={styles.label}>
+                {usingMockAuth ? "로그인 (목)" : "Google OAuth"}
+              </Text>
               <Text style={styles.hint}>
-                ID/비밀번호는 저장하지 않습니다. Google Cloud Console에서
-                OAuth 클라이언트를 설정한 뒤 EXPO_PUBLIC_* 환경 변수를
-                채워 주세요.
+                {usingMockAuth
+                  ? "OAuth 키가 없어 테스트 계정으로 로그인합니다. ID/비밀번호는 저장하지 않습니다."
+                  : "ID/비밀번호는 저장하지 않습니다. Google Cloud Console에서 OAuth 클라이언트를 설정한 뒤 EXPO_PUBLIC_* 환경 변수를 채워 주세요."}
               </Text>
               <Pressable
-                style={[styles.primary, !googleConfigured && styles.disabled]}
-                onPress={() => {
-                  if (!googleConfigured) {
-                    Alert.alert(
-                      "설정 필요",
-                      "EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID 등 Google OAuth 환경 변수를 설정하세요.",
-                    );
-                    return;
-                  }
-                  void signInGoogle();
-                }}
+                style={styles.primary}
+                onPress={() => void signInGoogle()}
               >
-                <Text style={styles.primaryText}>Google로 로그인</Text>
+                <Text style={styles.primaryText}>
+                  {usingMockAuth ? "테스트 로그인" : "Google로 로그인"}
+                </Text>
               </Pressable>
             </>
           )}
@@ -140,7 +130,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
   },
-  disabled: { opacity: 0.45 },
   link: {
     fontFamily: fonts.bold,
     fontSize: 17,
